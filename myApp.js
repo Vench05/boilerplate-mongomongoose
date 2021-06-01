@@ -4,7 +4,7 @@ const { Schema } = mongoose
 const MONGO_URI = process.env.MONGO_URI
 mongoose.connect(MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true})
 
-let Person;
+
 const personSchema = new Schema({
   name: {
     type: String,
@@ -14,7 +14,7 @@ const personSchema = new Schema({
   favoriteFoods: []
 })
 
-Person = mongoose.model('Person', personSchema)
+let Person = mongoose.model('Person', personSchema)
 
 const createAndSavePerson = (done) => {
   person = new Person({
@@ -36,44 +36,60 @@ const createManyPeople = (arrayOfPeople, done) => {
   })
 };
 
-const findPeopleByName = (personName, done) => {
-  done(null /*, data*/);
+const findPeopleByName = async (personName, done) => {
+  const person = await Person.find({name: personName})
+  done(null, person);
 };
 
-const findOneByFood = (food, done) => {
-  done(null /*, data*/);
+const findOneByFood = async (food, done) => {
+  const person = await Person.findOne({favoriteFoods: food})
+  done(null, person);
 };
 
-const findPersonById = (personId, done) => {
-  done(null /*, data*/);
+const findPersonById = async (personId, done) => {
+  const person = await Person.findById(personId)
+  done(null, person /*, data*/);
 };
 
-const findEditThenSave = (personId, done) => {
+const findEditThenSave = async (personId, done) => {
   const foodToAdd = "hamburger";
-
-  done(null /*, data*/);
+  let person = await Person.findById(personId)
+  console.log(person.favoriteFoods);
+  person.favoriteFoods.push(foodToAdd)
+  person.save((err, data) => {
+    if (err) return done(data)
+    done(null, data)
+  })
 };
 
-const findAndUpdate = (personName, done) => {
+const findAndUpdate = async (personName, done) => {
   const ageToSet = 20;
-
-  done(null /*, data*/);
+  const person = await Person.findOneAndUpdate({name: personName}, {age: ageToSet}, {new:true})
+  person.save((err, data) => {
+    if(err) return done(data)
+    done(null, data)
+  })
 };
 
-const removeById = (personId, done) => {
-  done(null /*, data*/);
+const removeById = async (personId, done) => {
+  const person = await Person.findByIdAndRemove(personId)
+  done(null, person /*, data*/);
 };
 
-const removeManyPeople = (done) => {
+const removeManyPeople = async (done) => {
   const nameToRemove = "Mary";
-
-  done(null /*, data*/);
+  const persons = await Person.remove({name: nameToRemove})
+  done(null, persons);
 };
 
-const queryChain = (done) => {
+const queryChain = async (done) => {
   const foodToSearch = "burrito";
-
-  done(null /*, data*/);
+  const person = await Person.find({favoriteFoods: foodToSearch}).sort("name").limit(2).select('-age')
+      .exec((err, data) => {
+        if(err) return done(data)
+        return done(null, data)
+      })
+  // done(null, person);
 };
 
 /** **Well Done !!**
